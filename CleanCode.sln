@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanCode", "CleanCode\CleanCode.csproj", "{A2BC880F-1924-4766-8C0C-4F623E9C1786}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AoC-2019", "AoC-2019\AoC-2019.csproj", "{A2BC880F-1924-4766-8C0C-4F623E9C1786}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Day2Tests", "Day2Tests\Day2Tests.csproj", "{9AFA0E9A-91B3-4C95-89F7-D36ABB3ABBB6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AoC-2019-Tests", "AoC-2019-Tests\AoC-2019-Tests.csproj", "{9AFA0E9A-91B3-4C95-89F7-D36ABB3ABBB6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

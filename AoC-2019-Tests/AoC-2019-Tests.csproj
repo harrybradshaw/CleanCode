@@ -9,7 +9,7 @@
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Day2Tests</RootNamespace>
-        <AssemblyName>Day2Tests</AssemblyName>
+        <AssemblyName>AoC-2019-Tests</AssemblyName>
         <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -46,9 +46,9 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\CleanCode\CleanCode.csproj">
+      <ProjectReference Include="..\AoC-2019\AoC-2019.csproj">
         <Project>{a2bc880f-1924-4766-8c0c-4f623e9c1786}</Project>
-        <Name>CleanCode</Name>
+        <Name>AoC-2019</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
