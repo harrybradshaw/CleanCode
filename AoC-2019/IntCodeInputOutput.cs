@@ -4,20 +4,20 @@ using System.Linq;
 
 namespace CleanCode
 {
-    public class Io
+    public class IntcodeIoHandler
     {
         public List<int> InputList { get; set; }
         public List<int> OutputList { get; set; }
         private int _nextInput = 0;
         public int LastOutput => OutputList.Last();
 
-        public Io()
+        public IntcodeIoHandler()
         {
             InputList = new List<int>();
             OutputList = new List<int>();
         }
 
-        public Io(IEnumerable<int> inputList)
+        public IntcodeIoHandler(IEnumerable<int> inputList)
         {
             InputList = inputList.ToList();
             OutputList = new List<int>();

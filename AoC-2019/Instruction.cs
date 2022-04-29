@@ -7,7 +7,7 @@ namespace CleanCode
     {
         public int OpCode { get; set; }
         public int Length { get; set; }
-        public List<int> ParameterModes { get; set; }
+        public List<ParameterMode> ParameterModes { get; set; }
         public List<int> Parameters { get; set; }
 
         public ReferenceValueResponse RefOrValue(int index)
@@ -19,14 +19,14 @@ namespace CleanCode
 
             switch (ParameterModes[index])
             {
-                case 0:
+                case ParameterMode.Position:
                     return new ReferenceValueResponse()
                     {
                         Type = RefValue.Reference,
                         Value = Parameters[index],
                     };
 
-                case 1:
+                case ParameterMode.Intermediate:
                     return new ReferenceValueResponse()
                     {
                         Type = RefValue.Value,
@@ -38,19 +38,9 @@ namespace CleanCode
         }
     }
 
-    public enum RefValue
-    {
-        Reference,
-        Value,
-    }
-
     public class ReferenceValueResponse
     {
-        public RefValue Type
-        {
-            get;
-            set;
-        }
+        public RefValue Type { get; set; }
         public int Value { get; set; }
     }
 }

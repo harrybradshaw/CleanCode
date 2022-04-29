@@ -7,21 +7,21 @@ namespace CleanCode
     {
         private List<int> _phaseSettings;
         private string _inputString;
-        private List<IntCode> _amps;
+        private List<IntcodeComputer> _amps;
         private MultiAmpMode _mode;
 
         public int GetThrusterSignal()
         {
             return  _mode == MultiAmpMode.Single 
                 ? SingleAmplifierPass(new List<int>{0}).Last() 
-                : AmpFeedback();
+                : AmplifierFeedbackLoop();
         } 
 
         public MultiAmpRunner(List<int> phaseSettings, string inputString, MultiAmpMode mode)
         {
             _phaseSettings = phaseSettings;
             _inputString = inputString;
-            _amps = new List<IntCode>();
+            _amps = new List<IntcodeComputer>();
             _mode = mode;
             InitAmps();
         }
@@ -30,7 +30,7 @@ namespace CleanCode
         {
             for (var i = 0; i < 5; i++)
             {
-                _amps.Add(new IntCode(_inputString));
+                _amps.Add(new IntcodeComputer(_inputString));
             }
         }
 
@@ -43,29 +43,26 @@ namespace CleanCode
                 {
                     inputList.Add(0);
                 }
-                inputList.AddRange(i == 0 ? firstInput : _amps[i - 1].Io.OutputList);
-                _amps[i].Io.InputList = inputList;
+                inputList.AddRange(i == 0 
+                    ? firstInput 
+                    : _amps[i - 1].IntcodeIoHandler.OutputList
+                );
+                _amps[i].IntcodeIoHandler.InputList = inputList;
                 _amps[i].ProcessIntCode();
             }
-            return _amps[4].Io.OutputList;
+            return _amps[4].IntcodeIoHandler.OutputList;
         }
 
-        private int AmpFeedback()
+        private int AmplifierFeedbackLoop()
         {
             var first = SingleAmplifierPass(new List<int>());
-            while (_amps.Select(amp => amp.State).All(state => state != IntcodeStates.IntCodeStates.Halted))
+            while (_amps.Select(amp => amp.State).All(state => state != IntCodeStates.Halted))
             {
                 first = SingleAmplifierPass(first);
             }
 
-            return _amps.Last().Io.LastOutput;
+            return _amps.Last().IntcodeIoHandler.LastOutput;
 
         }
-    }
-
-    public enum MultiAmpMode
-    {
-        Single,
-        Feedback,
     }
 }

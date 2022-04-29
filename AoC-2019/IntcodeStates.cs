@@ -1,13 +1,10 @@
 namespace CleanCode
 {
-    public class IntcodeStates
+    public enum IntCodeStates
     {
-        public enum IntCodeStates
-        {
-            Running,
-            Halted,
-            Initialised,
-            Paused,
-        }
+        Running,
+        Halted,
+        Initialised,
+        Paused,
     }
 }

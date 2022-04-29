@@ -5,35 +5,35 @@ using System.Linq;
 
 namespace CleanCode
 {
-    public class IntCode
+    public class IntcodeComputer
     {
         private List<int> _intList;
-        public IntcodeStates.IntCodeStates State { get; set;}
-        private InstructionFactory _instructionFactory;
-        private readonly string _inputString;
+        public IntCodeStates State { get; set;}
+        private readonly InstructionFactory _instructionFactory;
+        private readonly string _intcodeProgram;
         public string OutputString => string.Join(",", _intList);
         public int Output => _intList[0];
-        public Io Io { get; set; }
+        public IntcodeIoHandler IntcodeIoHandler { get; set; }
         private int _i;
 
-        public IntCode(string stringCode)
+        public IntcodeComputer(string programCode)
         {
-            _inputString = stringCode;
-            _intList = stringCode.Split(',').Select(int.Parse).ToList();
+            _intcodeProgram = programCode;
+            _intList = programCode.Split(',').Select(int.Parse).ToList();
             _instructionFactory = new InstructionFactory();
-            State = IntcodeStates.IntCodeStates.Initialised;
+            State = IntCodeStates.Initialised;
             _i = 0;
-            Io = new Io();
+            IntcodeIoHandler = new IntcodeIoHandler();
         }
         
-        public IntCode(string stringCode, Io io)
+        public IntcodeComputer(string programCode, IntcodeIoHandler intcodeIoHandler)
         {
-            _inputString = stringCode;
-            _intList = stringCode.Split(',').Select(int.Parse).ToList();
+            _intcodeProgram = programCode;
+            _intList = programCode.Split(',').Select(int.Parse).ToList();
             _instructionFactory = new InstructionFactory();
-            State = IntcodeStates.IntCodeStates.Initialised;
+            State = IntCodeStates.Initialised;
             _i = 0;
-            Io = io;
+            IntcodeIoHandler = intcodeIoHandler;
         }
         
         public string CalcNounVerb()
@@ -42,9 +42,9 @@ namespace CleanCode
             {
                 for (var j = 0; j < 100; j++)
                 {
-                    InitIntList();
+                    InitialiseIntList();
                     InitNounVerb(a,j);
-                    Reset();
+                    ResetComputer();
                     ProcessIntCode();
                     if (Output == 19690720)
                     {
@@ -56,9 +56,9 @@ namespace CleanCode
             return "fuck";
         }
 
-        private void InitIntList()
+        private void InitialiseIntList()
         {
-            _intList = _inputString.Split(',').Select(int.Parse).ToList();
+            _intList = _intcodeProgram.Split(',').Select(int.Parse).ToList();
         }
 
         public void InitNounVerb(int noun, int verb)
@@ -87,84 +87,87 @@ namespace CleanCode
 
         private int GetValue(ReferenceValueResponse response)
         {
-            return response.Type == RefValue.Value ? response.Value : _intList[response.Value];
+            return response.Type == RefValue.Value 
+                ? response.Value 
+                : _intList[response.Value];
         }
 
-        public void Reset()
+        public void ResetComputer()
         {
             _i = 0;
+            State = IntCodeStates.Initialised;
         }
         
         public void ProcessIntCode()
         {
-            State = IntcodeStates.IntCodeStates.Running;
+            State = IntCodeStates.Running;
             while (_i < _intList.Count)
             {
-                var firstTerm = _intList[_i].ToString("D5");
-                var inst = _instructionFactory.CreateInstruction(firstTerm);
+                //Pad the first value such that it is as long as it could ever be.
+                var firstValue = _intList[_i].ToString("D5");
+                var instruction = InstructionFactory.CreateInstruction(firstValue);
                 
-                if (inst.OpCode == 99)
+                if (instruction.OpCode == 99)
                 {
-                    State = IntcodeStates.IntCodeStates.Halted;
+                    State = IntCodeStates.Halted;
                     return;
                 }
                 
-                inst.Parameters = _intList.GetRange(_i + 1, inst.Length - 1);
-                switch (inst.OpCode)
+                instruction.Parameters = _intList.GetRange(_i + 1, instruction.Length - 1);
+                switch (instruction.OpCode)
                 {
                     case 1:
                     case 2:
-                        _intList[inst.Parameters[2]] = ProcessTwoNums(
-                            GetValue(inst.RefOrValue(0)),
-                            GetValue(inst.RefOrValue(1)),
-                            inst.OpCode
+                        _intList[instruction.Parameters[2]] = ProcessTwoNums(
+                            GetValue(instruction.RefOrValue(0)),
+                            GetValue(instruction.RefOrValue(1)),
+                            instruction.OpCode
                         );
                         break;
                     case 3:
                         try
                         {
-                            _intList[inst.Parameters[0]] = Io?.GetNextInput() ?? int.Parse(Console.ReadLine() ?? "0");
+                            _intList[instruction.Parameters[0]] = IntcodeIoHandler?.GetNextInput() ?? int.Parse(Console.ReadLine() ?? "0");
                         }
                         catch
                         {
-                            State = IntcodeStates.IntCodeStates.Paused;
+                            State = IntCodeStates.Paused;
                             return;
                         }
                         
                         break;
                     case 4:
-                        var v = GetValue(inst.RefOrValue(0));
-                        Io?.AppendOutput(v);
-                        //Console.WriteLine(v);
+                        var v = GetValue(instruction.RefOrValue(0));
+                        IntcodeIoHandler?.AppendOutput(v);
                         break;
                     case 5:
-                        _i = GetValue(inst.RefOrValue(0)) != 0 ? GetValue(inst.RefOrValue(1)) - inst.Length : _i;
+                        _i = GetValue(instruction.RefOrValue(0)) != 0 ? GetValue(instruction.RefOrValue(1)) - instruction.Length : _i;
                         break;
                     case 6:
-                        _i = GetValue(inst.RefOrValue(0)) == 0 ? GetValue(inst.RefOrValue(1)) - inst.Length : _i;
+                        _i = GetValue(instruction.RefOrValue(0)) == 0 ? GetValue(instruction.RefOrValue(1)) - instruction.Length : _i;
                         break;
                     case 7: 
                         ProcessBoolean(
-                            GetValue(inst.RefOrValue(0)) <
-                            GetValue(inst.RefOrValue(1)),
-                            inst.Parameters[2]
+                            GetValue(instruction.RefOrValue(0)) <
+                            GetValue(instruction.RefOrValue(1)),
+                            instruction.Parameters[2]
                         );
                         break;
                     case 8:
                         ProcessBoolean(
-                            GetValue(inst.RefOrValue(0)) ==
-                            GetValue(inst.RefOrValue(1)),
-                            inst.Parameters[2]
+                            GetValue(instruction.RefOrValue(0)) ==
+                            GetValue(instruction.RefOrValue(1)),
+                            instruction.Parameters[2]
                         );
                         break;
                     default:
                         throw new Exception();
                 }
 
-                _i += inst.Length;
+                _i += instruction.Length;
             }
 
-            State = IntcodeStates.IntCodeStates.Halted;
+            State = IntCodeStates.Halted;
         }
     }
 }

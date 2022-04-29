@@ -1,25 +1,28 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CleanCode
 {
     public class InstructionFactory
     { 
-        public Instruction CreateInstruction(string firstTerm)
+        public static Instruction CreateInstruction(string firstTerm)
         {
+            // OpCode is defined as last two digits of this.
             var opCode = int.Parse(firstTerm.Substring(3));
-            var paramModes = firstTerm.Substring(0, 3).Select(c => int.Parse(c.ToString())).ToList();
+            var paramModes = firstTerm.Substring(0, 3).Select(c => (ParameterMode)int.Parse(c.ToString())).ToList();
+            // Parameter modes are given in opposite order to instructions.
             paramModes.Reverse();
             
             return new Instruction()
             {
                 OpCode = opCode,
-                Length = InstructionLength(opCode),
+                Length = InstructionLengthForOpCode(opCode),
                 ParameterModes = paramModes,
             };
         }
 
-        private static int InstructionLength(int opCode)
+        private static int InstructionLengthForOpCode(int opCode)
         {
             switch (opCode)
             {

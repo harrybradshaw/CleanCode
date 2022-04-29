@@ -6,6 +6,21 @@ namespace CleanCode
 {
     public class MaximalThrusterSignal
     {
+        private readonly IEnumerable<IEnumerable<int>> _phasePermutations;
+        private readonly string _programString;
+        private readonly MultiAmpMode _mode;
+
+        public MaximalThrusterSignal(string programString, MultiAmpMode mode = MultiAmpMode.Single)
+        {
+            _programString = programString;
+            _mode = mode;
+            // Single mode => PhaseSettings are integers [0,1,2,3,4] used once.
+            // Multiple mode => PhaseSettings are [5,6,7,8,9] used once.
+            _phasePermutations = mode == MultiAmpMode.Single 
+                ? GetPermutations(Enumerable.Range(0, 5), 5) 
+                : GetPermutations(Enumerable.Range(5, 5), 5);
+        }
+        
         static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
         {
             if (length == 1) return list.Select(t => new T[] { t });
@@ -15,35 +30,25 @@ namespace CleanCode
                     (t1, t2) => t1.Concat(new T[] { t2 }));
         }
 
-        public int CalcMax()
+        public int CalculateMaximalSignal()
         {
-            var outputs = CalcOutputs();
+            var outputs = CalculateOutputs();
             return outputs.Select(output => output.ThrusterSignal).Max();
         }
 
-        private List<ThrusterOutput> CalcOutputs()
+        private List<ThrusterOutput> CalculateOutputs()
         {
-            return perms.Select(perm =>
+            return _phasePermutations.Select(phaseSettings =>
             {
-                var to = new ThrusterOutput
+                var phaseSettingsList = phaseSettings.ToList();
+                var thrusterOutput = new ThrusterOutput
                 {
-                    PhaseSettings = perm.ToList(),
-                    ThrusterSignal = new MultiAmpRunner(perm.ToList(), inputString, _mode).GetThrusterSignal(),
+                    PhaseSettings = phaseSettingsList,
+                    ThrusterSignal = new MultiAmpRunner(phaseSettingsList, _programString, _mode).GetThrusterSignal(),
                 };
-                Console.WriteLine($"{string.Join(",", to.PhaseSettings)} - {to.ThrusterSignal}");
-                return to;
+                Console.WriteLine($"{string.Join(",", thrusterOutput.PhaseSettings)} - {thrusterOutput.ThrusterSignal}");
+                return thrusterOutput;
             }).ToList();
-        }
-
-        private IEnumerable<IEnumerable<int>> perms;
-        private string inputString;
-        private MultiAmpMode _mode;
-
-        public MaximalThrusterSignal(string inputString, MultiAmpMode mode = MultiAmpMode.Single)
-        {
-            this.inputString = inputString;
-            _mode = mode;
-            perms = mode == MultiAmpMode.Single ? GetPermutations(Enumerable.Range(0, 5), 5) : GetPermutations(Enumerable.Range(5, 5), 5);
         }
     }
 
