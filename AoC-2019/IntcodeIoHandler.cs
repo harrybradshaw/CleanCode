@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +6,7 @@ namespace CleanCode
     public class IntcodeIoHandler
     {
         public List<int> InputList { get; set; }
-        public List<int> OutputList { get; set; }
+        public List<int> OutputList { get; }
         private int _nextInput = 0;
         public int LastOutput => OutputList.Last();
 
