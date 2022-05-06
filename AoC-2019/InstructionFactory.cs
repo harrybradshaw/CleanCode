@@ -5,7 +5,7 @@ namespace CleanCode
 {
     public class InstructionFactory
     { 
-        public static Instruction CreateInstruction(string firstTerm)
+        public Instruction CreateInstruction(string firstTerm)
         {
             // OpCode is defined as last two digits of this.
             var opCode = int.Parse(firstTerm.Substring(3));
@@ -23,6 +23,7 @@ namespace CleanCode
 
         private static int InstructionLengthForOpCode(int opCode)
         {
+            // Length of instruction includes the OpCode.
             switch (opCode)
             {
                 case 1:
@@ -35,11 +36,12 @@ namespace CleanCode
                     return 3;
                 case 3:
                 case 4:
+                case 9:
                     return 2;
                 case 99:
                     return 1;
                 default:
-                    throw new Exception();
+                    throw new Exception("OpCode not implemented.");
             }
         }
     }

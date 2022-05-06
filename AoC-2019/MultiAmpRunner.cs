@@ -48,7 +48,7 @@ namespace CleanCode
                     : _amps[i - 1].IntcodeIoHandler.OutputList
                 );
                 _amps[i].IntcodeIoHandler.InputList = inputList;
-                _amps[i].ProcessIntCode();
+                _amps[i].RunProgram();
             }
             return _amps[4].IntcodeIoHandler.OutputList;
         }

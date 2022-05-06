@@ -9,6 +9,7 @@ namespace CleanCode
         public List<int> OutputList { get; }
         private int _nextInput = 0;
         public int LastOutput => OutputList.Last();
+        public string OutputAsString => string.Join(",", OutputList);
 
         public IntcodeIoHandler()
         {

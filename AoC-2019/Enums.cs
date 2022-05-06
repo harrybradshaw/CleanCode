@@ -16,5 +16,6 @@ namespace CleanCode
     {
         Position,
         Intermediate,
+        RelativeMode,
     }
 }
