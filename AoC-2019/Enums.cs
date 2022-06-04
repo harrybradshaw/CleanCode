@@ -18,4 +18,16 @@ namespace CleanCode
         Intermediate,
         RelativeMode,
     }
+    public enum IntCodeStates
+    {
+        Running,
+        Halted,
+        Initialised,
+        Paused,
+    }
+    
+    public enum FailureReason
+    {
+        CouldNotAccessMemoryAddress,
+    }
 }

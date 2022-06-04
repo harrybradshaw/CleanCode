@@ -1,23 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CleanCode
 {
     public class InstructionFactory
     { 
-        public Instruction CreateInstruction(string firstTerm)
+        public Instruction CreateInstruction(List<long> intList, int currentPointer)
         {
-            // OpCode is defined as last two digits of this.
+            var firstTerm = intList[currentPointer].ToString("D5");
+            // OpCode is defined as last two digits of the first term.
             var opCode = int.Parse(firstTerm.Substring(3));
             var paramModes = firstTerm.Substring(0, 3).Select(c => (ParameterMode)int.Parse(c.ToString())).ToList();
             // Parameter modes are given in opposite order to instructions.
             paramModes.Reverse();
+            var length = InstructionLengthForOpCode(opCode);
             
-            return new Instruction()
+            return new Instruction
             {
                 OpCode = opCode,
-                Length = InstructionLengthForOpCode(opCode),
-                ParameterModes = paramModes,
+                Length = length,
+                ParameterModes = paramModes.GetRange(0,length - 1),
+                Parameters = intList.GetRange(currentPointer + 1, length - 1).ToList(),
             };
         }
 

@@ -21,7 +21,7 @@ namespace CleanCode
                 : GetPermutations(Enumerable.Range(5, 5), 5);
         }
         
-        static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
+        private static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
         {
             if (length == 1) return list.Select(t => new T[] { t });
 
@@ -30,7 +30,7 @@ namespace CleanCode
                     (t1, t2) => t1.Concat(new T[] { t2 }));
         }
 
-        public int CalculateMaximalSignal()
+        public long CalculateMaximalSignal()
         {
             var outputs = CalculateOutputs();
             return outputs.Select(output => output.ThrusterSignal).Max();
@@ -55,6 +55,6 @@ namespace CleanCode
     public class ThrusterOutput
     {
         public List<int> PhaseSettings { get; set; }
-        public int ThrusterSignal { get; set; }
+        public long ThrusterSignal { get; set; }
     }
 }

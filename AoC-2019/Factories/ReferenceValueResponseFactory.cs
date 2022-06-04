@@ -1,29 +1,23 @@
 using System;
-using System.Collections.Generic;
 
 namespace CleanCode
 {
-    public class Instruction
+    public class ReferenceValueResponseFactory
     {
-        public int OpCode { get; set; }
-        public int Length { get; set; }
-        public List<ParameterMode> ParameterModes { get; set; }
-        public List<long> Parameters { get; set; }
-
-        public ReferenceValueResponse RefOrValue(int index, long relativeBase)
+        public ReferenceValueResponse Create(Instruction instruction, int index, long relativeBase)
         {
-            if (index >= ParameterModes.Count || index >= Parameters.Count)
+            if (index >= instruction.ParameterModes.Count || index >= instruction.Parameters.Count)
             {
                 throw new Exception("Index out of range");
             }
 
             var response = new ReferenceValueResponse
             {
-                Value = Parameters[index]
+                Value = instruction.Parameters[index]
             };
 
 
-            switch (ParameterModes[index])
+            switch (instruction.ParameterModes[index])
             {
                 case ParameterMode.Position:
                     response.Type = RefValue.Reference;
@@ -44,11 +38,5 @@ namespace CleanCode
 
             return response;
         }
-    }
-
-    public class ReferenceValueResponse
-    {
-        public RefValue Type { get; set; }
-        public long Value { get; set; }
     }
 }

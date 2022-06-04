@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,32 +6,36 @@ namespace CleanCode
 {
     public class IntcodeIoHandler
     {
-        public List<int> InputList { get; set; }
-        public List<int> OutputList { get; }
-        private int _nextInput = 0;
-        public int LastOutput => OutputList.Last();
+        public List<long> InputList { get; set; }
+        public List<long> OutputList { get; }
+        private int _nextInput;
+        public long LastOutput => OutputList.Last();
         public string OutputAsString => string.Join(",", OutputList);
 
         public IntcodeIoHandler()
         {
-            InputList = new List<int>();
-            OutputList = new List<int>();
+            InputList = new List<long>();
+            OutputList = new List<long>();
         }
 
-        public IntcodeIoHandler(IEnumerable<int> inputList)
+        public IntcodeIoHandler(IEnumerable<long> inputList)
         {
             InputList = inputList.ToList();
-            OutputList = new List<int>();
+            OutputList = new List<long>();
         }
 
-        public int GetNextInput()
+        public long? GetNextInput()
         {
-            var input =  InputList[_nextInput];
+            if (_nextInput > InputList.Count - 1)
+            {
+                return null;
+            }
+            var input = InputList[_nextInput];
             _nextInput++;
             return input;
         }
 
-        public void AppendOutput(int output)
+        public void AppendOutput(long output)
         {
             OutputList.Add(output);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,40 +6,40 @@ namespace CleanCode
 {
     public class MultiAmpRunner
     {
-        private List<int> _phaseSettings;
-        private string _inputString;
+        private readonly List<int> _phaseSettings;
+        private readonly string _inputString;
+        private readonly MultiAmpMode _mode;
         private List<IntcodeComputer> _amps;
-        private MultiAmpMode _mode;
-
-        public int GetThrusterSignal()
-        {
-            return  _mode == MultiAmpMode.Single 
-                ? SingleAmplifierPass(new List<int>{0}).Last() 
-                : AmplifierFeedbackLoop();
-        } 
 
         public MultiAmpRunner(List<int> phaseSettings, string inputString, MultiAmpMode mode)
         {
             _phaseSettings = phaseSettings;
             _inputString = inputString;
-            _amps = new List<IntcodeComputer>();
             _mode = mode;
-            InitAmps();
+            CreateAmplifiers();
         }
-
-        private void InitAmps()
+        
+        public long GetThrusterSignal()
         {
+            return  _mode == MultiAmpMode.Single 
+                ? SingleAmplifierPass(new List<long>{0}).Last() 
+                : AmplifierFeedbackLoop();
+        } 
+
+        private void CreateAmplifiers()
+        {
+            _amps = new List<IntcodeComputer>();
             for (var i = 0; i < 5; i++)
             {
                 _amps.Add(new IntcodeComputer(_inputString));
             }
         }
 
-        private List<int> SingleAmplifierPass(List<int> firstInput)
+        private List<long> SingleAmplifierPass(List<long> firstInput)
         {
             for (var i = 0; i < 5; i++)
             {
-                var inputList = new List<int> {_phaseSettings[i]};
+                var inputList = new List<long> {_phaseSettings[i]};
                 if (i == 0)
                 {
                     inputList.Add(0);
@@ -48,21 +49,20 @@ namespace CleanCode
                     : _amps[i - 1].IntcodeIoHandler.OutputList
                 );
                 _amps[i].IntcodeIoHandler.InputList = inputList;
-                _amps[i].RunProgram();
+                _amps[i].RunProgramUntilPause();
             }
             return _amps[4].IntcodeIoHandler.OutputList;
         }
 
-        private int AmplifierFeedbackLoop()
+        private long AmplifierFeedbackLoop()
         {
-            var first = SingleAmplifierPass(new List<int>());
+            var firstInput = SingleAmplifierPass(new List<long>());
             while (_amps.Select(amp => amp.State).All(state => state != IntCodeStates.Halted))
             {
-                first = SingleAmplifierPass(first);
+                firstInput = SingleAmplifierPass(firstInput);
             }
-
+            Console.WriteLine(_amps.Last().IntcodeIoHandler.LastOutput);
             return _amps.Last().IntcodeIoHandler.LastOutput;
-
         }
     }
 }
