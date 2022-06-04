@@ -42,6 +42,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Day11Tests.cs" />
         <Compile Include="Day2Tests.cs" />
         <Compile Include="Day5Tests.cs" />
         <Compile Include="Day9Tests.cs" />

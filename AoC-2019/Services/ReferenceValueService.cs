@@ -5,22 +5,38 @@ namespace CleanCode
     public class ReferenceValueService
     {
         private readonly ReferenceValueResponseFactory _referenceValueResponseFactory = new ReferenceValueResponseFactory();
-        public long GetValue(ReferenceValueResponse response, List<long> intList)
+        public InstructionResponse GetValue(ReferenceValueResponse response, List<long> intList)
         {
             switch (response.Type)
             {
                 default:
                 case RefValue.Value:
-                    return response.Value;
+                    return new InstructionResponse
+                    {
+                        Value = response.Value,
+                        WasInstructionSuccess = true,
+                    };
                 case RefValue.Reference:
-                    return intList[(int)response.Value];
+                    if ((int) response.Value < intList.Count)
+                    {
+                        return new InstructionResponse
+                        {
+                            Value = intList[(int) response.Value],
+                            WasInstructionSuccess = true,
+                        };
+                    }
+                    return new InstructionResponse
+                    {
+                        WasInstructionSuccess = false,
+                        FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                    };
             }
         }
 
-        public long GetFromInstruction(IntcodeComputer computer, Instruction instruction, int index)
+        public InstructionResponse GetFromInstruction(IntcodeComputer computer, Instruction instruction, int index)
         {
             var response = _referenceValueResponseFactory.Create(instruction, index, computer.RelativeBase);
-            return GetValue(response, computer.IntList);
+            return  GetValue(response, computer.IntList);
         }
 
         public int GetAddress(IntcodeComputer computer, Instruction instruction, int index)

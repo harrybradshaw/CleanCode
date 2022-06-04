@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -14,8 +15,7 @@ namespace CleanCode
         public InstructionResponse HandleInstruction(IntcodeComputer computer, Instruction instruction)
         {
             computer.State = IntCodeStates.Running;
-            instruction.LogInstruction();
-            InstructionResponse response;
+            //instruction.LogInstruction();
             switch (instruction.OpCode)
             {
                 case 1:
@@ -26,13 +26,9 @@ namespace CleanCode
                 case 4:
                     return HandleOutputToBuffer(computer, instruction);
                 case 5:
-                    response = HandleJumpIfTrue(computer, instruction);
-                    computer.Pointer = (int) response.Value;
-                    return response;
+                    return HandleJumpIfTrue(computer, instruction);
                 case 6:
-                    response = HandleJumpIfFalse(computer, instruction);
-                    computer.Pointer = (int) response.Value;
-                    return response;
+                    return HandleJumpIfFalse(computer, instruction);
                 case 7:
                     return HandleLessThan(computer, instruction);
                 case 8:
@@ -55,13 +51,22 @@ namespace CleanCode
                     FailureReason = FailureReason.CouldNotAccessMemoryAddress,
                 };
             }
+            
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            var response2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
 
-            var value1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            var value2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            if (!AssertCanAccessInputs(new List<InstructionResponse> {response1, response2}))
+            {
+                return new InstructionResponse
+                {
+                    WasInstructionSuccess = false,
+                    FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                };
+            }
             
             var result = ProcessTwoNums(
-                 value1,
-                 value2,
+                 response1.Value,
+                 response2.Value,
                 instruction.OpCode
             );
             computer.IntList[outputAddress] = result;
@@ -86,8 +91,22 @@ namespace CleanCode
             // Try and read next input from buffer. If none exist prompt user.
             try
             {
-                var result =  computer.IntcodeIoHandler?.GetNextInput() ?? GetInputFromUser();
-                computer.IntList[outputAddress] = result;
+                var result = computer.IntcodeIoHandler?.GetNextInput();
+                if (!result.HasValue)
+                {
+                    if (computer.PauseOnInput)
+                    {
+                        computer.State = IntCodeStates.Paused;
+                    }
+                    else
+                    {
+                        computer.IntList[outputAddress] = GetInputFromUser();
+                    }
+                }
+                else
+                {
+                    computer.IntList[outputAddress] = result.Value;
+                }
 
             }
             catch
@@ -106,9 +125,16 @@ namespace CleanCode
 
         private InstructionResponse HandleOutputToBuffer(IntcodeComputer computer, Instruction instruction)
         {
-            var value = _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            computer.IntcodeIoHandler?.AppendOutput(value);
-            computer.State = IntCodeStates.Paused;
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            if (!response1.WasInstructionSuccess)
+            {
+                return response1;
+            }
+            computer.IntcodeIoHandler?.OutputList.Add(response1.Value);
+            if (computer.PauseOnOutput)
+            {
+                computer.State = IntCodeStates.Paused;
+            }
             return new InstructionResponse
             {
                 WasInstructionSuccess = true,
@@ -117,27 +143,46 @@ namespace CleanCode
 
         private InstructionResponse HandleJumpIfTrue(IntcodeComputer computer, Instruction instruction)
         {
-            var testValue = _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            var value = testValue != 0
-                ? (int)_referenceValueService.GetFromInstruction(computer, instruction, 1) - instruction.Length
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            var response2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            if (!AssertCanAccessInputs(new List<InstructionResponse> {response1, response2}))
+            {
+                return new InstructionResponse
+                {
+                    WasInstructionSuccess = false,
+                    FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                };
+            }
+            var value = response1.Value != 0
+                ? (int)response2.Value - instruction.Length
                 : computer.Pointer;
-            
+            computer.Pointer = value;
+
             return new InstructionResponse
             {
-                Value = value,
                 WasInstructionSuccess = true,
             };
         }
 
         private InstructionResponse HandleJumpIfFalse(IntcodeComputer computer, Instruction instruction)
         {
-            var value = _referenceValueService.GetFromInstruction(computer, instruction, 0) == 0
-                ? (int)_referenceValueService.GetFromInstruction(computer, instruction, 1) - instruction.Length
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            var response2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            if (!AssertCanAccessInputs(new List<InstructionResponse> {response1, response2}))
+            {
+                return new InstructionResponse
+                {
+                    WasInstructionSuccess = false,
+                    FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                };
+            }
+            var value = response1.Value == 0
+                ? (int) response2.Value - instruction.Length
                 : computer.Pointer;
+            computer.Pointer = value;
             
             return new InstructionResponse
             {
-                Value = value,
                 WasInstructionSuccess = true,
             };
         }
@@ -145,15 +190,21 @@ namespace CleanCode
         private InstructionResponse HandleLessThan(IntcodeComputer computer, Instruction instruction)
         {
             var outputAddress = _referenceValueService.GetAddress(computer, instruction, 2);
-            var value1 =
-                _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            var value2 = 
-                _referenceValueService.GetFromInstruction(computer, instruction, 1);
-           Console.WriteLine($"LessThan: {value1} < {value2}");
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            var response2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            if (!AssertCanAccessInputs(new List<InstructionResponse> {response1, response2}))
+            {
+                return new InstructionResponse
+                {
+                    WasInstructionSuccess = false,
+                    FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                };
+            }
+            //Console.WriteLine($"LessThan: {value1} < {value2}");
             
             ProcessBoolean(
                 computer,
-                value1 < value2,
+                response1.Value < response2.Value,
                 outputAddress
             );
             
@@ -165,13 +216,21 @@ namespace CleanCode
 
         private InstructionResponse HandleEquals(IntcodeComputer computer, Instruction instruction)
         {
-            var value1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            var value2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            var response1 = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            var response2 = _referenceValueService.GetFromInstruction(computer, instruction, 1);
+            if (!AssertCanAccessInputs(new List<InstructionResponse> {response1, response2}))
+            {
+                return new InstructionResponse
+                {
+                    WasInstructionSuccess = false,
+                    FailureReason = FailureReason.CouldNotAccessMemoryAddress,
+                };
+            }
             var outputAddress = _referenceValueService.GetAddress(computer, instruction, 2);
             
             ProcessBoolean(
                 computer,
-                value1 == value2,
+                response1.Value == response2.Value,
                 outputAddress
             );
 
@@ -183,12 +242,15 @@ namespace CleanCode
 
         private InstructionResponse HandleModifyRelativeBase(IntcodeComputer computer, Instruction instruction)
         {
-            var value = _referenceValueService.GetFromInstruction(computer, instruction, 0);
-            Console.WriteLine($"AdjustingRelativeBase: {computer.RelativeBase} -> {computer.RelativeBase + value}");
-            computer.RelativeBase += value;
+            var response = _referenceValueService.GetFromInstruction(computer, instruction, 0);
+            if (!response.WasInstructionSuccess)
+            {
+                return response;
+            }
+            //Console.WriteLine($"AdjustingRelativeBase: {computer.RelativeBase} -> {computer.RelativeBase + value}");
+            computer.RelativeBase += response.Value;
             return new InstructionResponse
             {
-                Value = value,
                 WasInstructionSuccess = true,
             };
         }
@@ -198,10 +260,10 @@ namespace CleanCode
             switch (opCode)
             {
                 case 1:
-                    Console.WriteLine($"Addition: {one} + {two}");
+                    //Console.WriteLine($"Addition: {one} + {two}");
                     return one + two;
                 case 2:
-                    Console.WriteLine($"Multiplication: {one} * {two}");
+                    //Console.WriteLine($"Multiplication: {one} * {two}");
                     return one * two;
                 default:
                     throw new Exception("Unknown OpCode");
@@ -217,6 +279,11 @@ namespace CleanCode
         {
             Console.WriteLine("Awaiting input...");
             return int.Parse(Console.ReadLine() ?? "0");
+        }
+
+        private bool AssertCanAccessInputs(List<InstructionResponse> inputResponses)
+        {
+            return inputResponses.All(i => i.WasInstructionSuccess);
         }
     }
 }

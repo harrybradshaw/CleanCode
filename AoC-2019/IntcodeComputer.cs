@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace CleanCode
@@ -17,6 +16,9 @@ namespace CleanCode
         public long RelativeBase { get; set; }
         private readonly InstructionFactory _instructionFactory;
         private readonly InstructionService _instructionService;
+        public bool PauseOnOutput { get; set; } = true;
+        public bool PauseOnInput { get; set; } = false;
+        public bool Logging { get; set; } = false;
 
         public IntcodeComputer(string programCode)
         {
@@ -39,34 +41,25 @@ namespace CleanCode
             State = IntCodeStates.Running;
             while (State == IntCodeStates.Running)
             {
-                this.LogComputerState();
-                var instruction = _instructionFactory.CreateInstruction(IntList, Pointer);
-                
-                if (instruction.OpCode == 99)
-                {
-                    State = IntCodeStates.Halted;
-                    Console.WriteLine("Halted");
-                    return;
-                }
-
-                var instructionResponse = _instructionService.HandleInstruction(this, instruction);
-                if (instructionResponse.WasInstructionSuccess)
-                {
-                    Pointer += instruction.Length;
-                }
-                else
-                {
-                    switch (instructionResponse.FailureReason)
-                    {
-                        case FailureReason.CouldNotAccessMemoryAddress:
-                            DoubleMemory();
-                            return;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }   
-                }
+                CreateAndExecuteInstruction();
             }
         }
+        public void RunProgramUntilHalt()
+        {
+            while (State != IntCodeStates.Halted && Pointer < IntList.Count)
+            {
+                RunProgramUntilPause();
+            }
+        }
+
+        public void RunUntilTwoOutputs()
+        {
+            while (IntcodeIoHandler.OutputList.Count != 2 && State != IntCodeStates.Halted)
+            {
+                CreateAndExecuteInstruction();
+            }
+        }
+        
         public string CalcNounVerb()
         {
             for (var a = 0; a < 100; a++)
@@ -86,6 +79,37 @@ namespace CleanCode
 
             return "fuck";
         }
+
+        private void CreateAndExecuteInstruction()
+        {
+            State = IntCodeStates.Running;
+            var instruction = _instructionFactory.CreateInstruction(IntList, Pointer);
+                
+            if (instruction.OpCode == 99)
+            {
+                State = IntCodeStates.Halted;
+                Console.WriteLine("Halted");
+                return;
+            }
+
+            var instructionResponse = _instructionService.HandleInstruction(this, instruction);
+            if (instructionResponse.WasInstructionSuccess)
+            {
+                Pointer += instruction.Length;
+            }
+            else
+            {
+                switch (instructionResponse.FailureReason)
+                {
+                    case FailureReason.CouldNotAccessMemoryAddress:
+                        DoubleMemory();
+                        return;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }   
+            }
+        }
+        
         private void InitialiseIntList()
         {
             IntList = _intcodeProgram.Split(',').Select(long.Parse).ToList();
@@ -105,17 +129,7 @@ namespace CleanCode
 
         private void DoubleMemory()
         {
-            Console.WriteLine("Doubling memory");
             IntList.AddRange(new long[IntList.Count].ToList());
-        }
-
-
-        public void RunProgramUntilHalt()
-        {
-            while (State != IntCodeStates.Halted && Pointer < IntList.Count)
-            {
-                RunProgramUntilPause();
-            }
         }
     }
 }

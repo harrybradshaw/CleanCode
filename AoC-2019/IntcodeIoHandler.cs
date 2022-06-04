@@ -7,10 +7,11 @@ namespace CleanCode
     public class IntcodeIoHandler
     {
         public List<long> InputList { get; set; }
-        public List<long> OutputList { get; }
+        public List<long> OutputList { get; set; }
         private int _nextInput;
         public long LastOutput => OutputList.Last();
         public string OutputAsString => string.Join(",", OutputList);
+        public bool IncrementOnInput { get; set; } = true;
 
         public IntcodeIoHandler()
         {
@@ -31,13 +32,11 @@ namespace CleanCode
                 return null;
             }
             var input = InputList[_nextInput];
-            _nextInput++;
+            if (IncrementOnInput)
+            {
+                _nextInput++;
+            }
             return input;
-        }
-
-        public void AppendOutput(long output)
-        {
-            OutputList.Add(output);
         }
     }
 }
