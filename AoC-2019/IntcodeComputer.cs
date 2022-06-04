@@ -19,7 +19,6 @@ namespace CleanCode
         public bool PauseOnOutput { get; set; } = true;
         public bool PauseOnInput { get; set; } = false;
         public bool AwaitInput { get; set; } = false;
-        public bool Logging { get; set; } = false;
 
         public IntcodeComputer(string programCode)
         {
@@ -46,15 +45,6 @@ namespace CleanCode
             }
         }
 
-        // public void RunUntilOutputReady()
-        // {
-        //     State = IntCodeStates.Running;
-        //     while ()
-        //     {
-        //         CreateAndExecuteInstruction();
-        //     }
-        // }
-
         public void RunProgramUntilHalt()
         {
             while (State != IntCodeStates.Halted && Pointer < IntList.Count)
@@ -78,27 +68,6 @@ namespace CleanCode
                 CreateAndExecuteNextInstruction();
             }
         }
-
-        public string CalcNounVerb()
-        {
-            for (var a = 0; a < 100; a++)
-            {
-                for (var j = 0; j < 100; j++)
-                {
-                    InitialiseIntList();
-                    InitNounVerb(a,j);
-                    ResetComputer();
-                    RunProgramUntilPause();
-                    if (Output == 19690720)
-                    {
-                        return a.ToString("D2") + j.ToString("D2");
-                    }
-                }
-            }
-
-            return "fuck";
-        }
-
         private void CreateAndExecuteNextInstruction()
         {
             State = IntCodeStates.Running;
@@ -130,6 +99,26 @@ namespace CleanCode
                         throw new ArgumentOutOfRangeException();
                 }   
             }
+        }
+        
+        public string CalcNounVerb()
+        {
+            for (var a = 0; a < 100; a++)
+            {
+                for (var j = 0; j < 100; j++)
+                {
+                    InitialiseIntList();
+                    InitNounVerb(a,j);
+                    ResetComputer();
+                    RunProgramUntilPause();
+                    if (Output == 19690720)
+                    {
+                        return a.ToString("D2") + j.ToString("D2");
+                    }
+                }
+            }
+
+            return "fuck";
         }
         
         private void InitialiseIntList()

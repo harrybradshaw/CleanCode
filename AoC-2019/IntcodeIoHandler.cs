@@ -11,7 +11,7 @@ namespace CleanCode
         private int _nextInput;
         public long LastOutput => OutputList.Last();
         public string OutputAsString => string.Join(",", OutputList);
-        public bool IncrementOnInput { get; set; } = true;
+        public bool IncrementOnReadingInput { get; set; } = true;
 
         public IntcodeIoHandler()
         {
@@ -19,7 +19,7 @@ namespace CleanCode
             OutputList = new List<long>();
         }
 
-        public IntcodeIoHandler(long[] inputList)
+        public IntcodeIoHandler(IEnumerable<long> inputList)
         {
             InputList = inputList.ToList();
             OutputList = new List<long>();
@@ -32,7 +32,7 @@ namespace CleanCode
                 return null;
             }
             var input = InputList[_nextInput];
-            if (IncrementOnInput)
+            if (IncrementOnReadingInput)
             {
                 _nextInput++;
             }

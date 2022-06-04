@@ -10,7 +10,7 @@ namespace CleanCode
                 PauseOnInput = true,
                 IntcodeIoHandler =
                 {
-                    IncrementOnInput = false
+                    IncrementOnReadingInput = false
                 }
             };
 

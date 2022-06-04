@@ -20,8 +20,8 @@ namespace CleanCode
             {
                 OpCode = opCode,
                 Length = length,
-                ParameterModes = paramModes.GetRange(0,length - 1),
                 Parameters = intList.GetRange(currentPointer + 1, length - 1).ToList(),
+                ParameterModes = paramModes.GetRange(0,length - 1),
             };
         }
 

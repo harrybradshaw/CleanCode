@@ -7,12 +7,11 @@ namespace CleanCode
     public class TileGame
     {
         private List<GameElement> NewElements { get; set; }
-
-        public Scoreboard Scoreboard { get; set; } = new Scoreboard
+        private Scoreboard Scoreboard { get; set; } = new Scoreboard
         {
             Value = 0,
         };
-        public IntcodeComputer IntcodeComputer { get; set; }
+        private IntcodeComputer IntcodeComputer { get; set; }
         private readonly GameElementFactory _gameElementFactory;
         private TileType[,] _gameBoard;
         private int BallX { get; set; }
@@ -34,7 +33,7 @@ namespace CleanCode
             {
                 IntcodeComputer.RunUntilAwaitingInput();
                 SingleRender();
-                var input = CalculateInput();
+                var input = CalculateInputFromPosition();
                 IntcodeComputer.IntcodeIoHandler.InputList.Add(input);
                 if (IntcodeComputer.State == IntCodeStates.AwaitingInput)
                 {
@@ -59,15 +58,9 @@ namespace CleanCode
             }
         }
 
-        private int CalculateInput()
+        private int CalculateInputFromPosition()
         {
-            var ballPos = BallX;
-            var paddlePos = PaddleX;
-            return paddlePos > ballPos
-                ? -1
-                : paddlePos < ballPos
-                    ? 1
-                    : 0;
+            return Math.Sign(BallX - PaddleX);
         }
         private void InitialiseGameBoard()
         {
@@ -92,7 +85,7 @@ namespace CleanCode
             if (CanRenderGameState())
             {
                 NewElements = IntcodeComputer.IntcodeIoHandler.OutputList
-                    .SplitIntoChunk(3)
+                    .SplitIntoChunks(3)
                     .Select(c => _gameElementFactory.Create(c))
                     .ToList();
                 IntcodeComputer.IntcodeIoHandler.OutputList.Clear();

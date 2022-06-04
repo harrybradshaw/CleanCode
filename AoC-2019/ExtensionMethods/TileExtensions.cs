@@ -5,7 +5,7 @@ namespace CleanCode
 {
     public static class TileExtensions
     {
-        public static IEnumerable<IEnumerable<T>> SplitIntoChunk<T>
+        public static IEnumerable<IEnumerable<T>> SplitIntoChunks<T>
             (this IEnumerable<T> source, int itemsPerSet) 
         {
             var sourceList = source as List<T> ?? source.ToList();
