@@ -19,7 +19,7 @@ namespace CleanCode
             OutputList = new List<long>();
         }
 
-        public IntcodeIoHandler(IEnumerable<long> inputList)
+        public IntcodeIoHandler(long[] inputList)
         {
             InputList = inputList.ToList();
             OutputList = new List<long>();

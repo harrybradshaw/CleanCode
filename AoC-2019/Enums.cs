@@ -24,10 +24,12 @@ namespace CleanCode
         Halted,
         Initialised,
         Paused,
+        AwaitingInput,
     }
     
     public enum FailureReason
     {
         CouldNotAccessMemoryAddress,
+        AwaitingInputThatIsNotPresent,
     }
 }

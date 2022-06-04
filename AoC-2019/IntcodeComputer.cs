@@ -18,6 +18,7 @@ namespace CleanCode
         private readonly InstructionService _instructionService;
         public bool PauseOnOutput { get; set; } = true;
         public bool PauseOnInput { get; set; } = false;
+        public bool AwaitInput { get; set; } = false;
         public bool Logging { get; set; } = false;
 
         public IntcodeComputer(string programCode)
@@ -41,9 +42,19 @@ namespace CleanCode
             State = IntCodeStates.Running;
             while (State == IntCodeStates.Running)
             {
-                CreateAndExecuteInstruction();
+                CreateAndExecuteNextInstruction();
             }
         }
+
+        // public void RunUntilOutputReady()
+        // {
+        //     State = IntCodeStates.Running;
+        //     while ()
+        //     {
+        //         CreateAndExecuteInstruction();
+        //     }
+        // }
+
         public void RunProgramUntilHalt()
         {
             while (State != IntCodeStates.Halted && Pointer < IntList.Count)
@@ -56,10 +67,18 @@ namespace CleanCode
         {
             while (IntcodeIoHandler.OutputList.Count != 2 && State != IntCodeStates.Halted)
             {
-                CreateAndExecuteInstruction();
+                CreateAndExecuteNextInstruction();
             }
         }
-        
+
+        public void RunUntilAwaitingInput()
+        {
+            while (State != IntCodeStates.Halted && State != IntCodeStates.AwaitingInput)
+            {
+                CreateAndExecuteNextInstruction();
+            }
+        }
+
         public string CalcNounVerb()
         {
             for (var a = 0; a < 100; a++)
@@ -80,7 +99,7 @@ namespace CleanCode
             return "fuck";
         }
 
-        private void CreateAndExecuteInstruction()
+        private void CreateAndExecuteNextInstruction()
         {
             State = IntCodeStates.Running;
             var instruction = _instructionFactory.CreateInstruction(IntList, Pointer);
@@ -103,6 +122,9 @@ namespace CleanCode
                 {
                     case FailureReason.CouldNotAccessMemoryAddress:
                         DoubleMemory();
+                        return;
+                    case FailureReason.AwaitingInputThatIsNotPresent:
+                        State = IntCodeStates.AwaitingInput;
                         return;
                     default:
                         throw new ArgumentOutOfRangeException();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace CleanCode
@@ -97,6 +98,14 @@ namespace CleanCode
                     if (computer.PauseOnInput)
                     {
                         computer.State = IntCodeStates.Paused;
+                    }
+                    else if (computer.AwaitInput)
+                    {
+                        return new InstructionResponse
+                        {
+                            WasInstructionSuccess = false,
+                            FailureReason = FailureReason.AwaitingInputThatIsNotPresent,
+                        };
                     }
                     else
                     {
