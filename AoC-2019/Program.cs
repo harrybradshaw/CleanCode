@@ -7,7 +7,7 @@ namespace CleanCode
     {
         static void Main(string[] args)
         {
-            Day13();
+            Day15();
         }
         
         static void Day9()
@@ -39,6 +39,12 @@ namespace CleanCode
             var tileGame = new TileGame(inputString);
             tileGame.RunGame();
             //Console.WriteLine(tileGame.Tiles.Count(t => t.TileType == TileType.Block));
+        }
+
+        static void Day15()
+        {
+            var driver = new Day15Driver();
+            driver.Run();
         }
     }
 }

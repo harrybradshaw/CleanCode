@@ -8,7 +8,7 @@ namespace CleanCode
     {
         public List<long> IntList { get; set; }
         public IntCodeStates State { get; set;}
-        private readonly string _intcodeProgram;
+        public readonly string IntcodeProgram;
         public string OutputProgram => string.Join(",", IntList);
         public long Output => IntList[0];
         public IntcodeIoHandler IntcodeIoHandler { get; set; }
@@ -22,7 +22,7 @@ namespace CleanCode
 
         public IntcodeComputer(string programCode)
         {
-            _intcodeProgram = programCode;
+            IntcodeProgram = programCode;
             IntList = programCode.Split(',').Select(long.Parse).ToList();
             State = IntCodeStates.Initialised;
             Pointer = 0;
@@ -123,7 +123,7 @@ namespace CleanCode
         
         private void InitialiseIntList()
         {
-            IntList = _intcodeProgram.Split(',').Select(long.Parse).ToList();
+            IntList = IntcodeProgram.Split(',').Select(long.Parse).ToList();
         }
 
         public void InitNounVerb(int noun, int verb)
